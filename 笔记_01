@@ -1,0 +1,2100 @@
+1. 建工程+添jar包
+-- jar包
+
+asm-3.3.1.jar
+c3p0-0.9.1.2.jar  --> 数据库连接池
+cglib-2.2.2.jar
+commons-logging-1.1.1.jar  --> 日志表
+Dm7JdbcDriver16.jar  --> 达梦数据库驱动
+ehcache-core-2.6.8.jar  --> 二级缓存_核心包
+javassist-3.17.1-GA.jar
+log4j-1.2.17.jar  --> 日志
+log4j-api-2.0.2.jar  --> 日志
+log4j-core-2.0.2.jar  --> 日志
+mybatis-3.2.8.jar  --> 核心包_mybatis
+mybatis-ehcache-1.0.3.jar  --> 二级缓存_mybatis
+slf4j-api-1.7.5.jar
+slf4j-log4j12-1.7.5.jar
+================================================================
+2.打开 达梦_数据库+建表person
+
+-- 创建表
+CREATE TABLE "hj_ycp"."tb_person" (
+  "id" INT IDENTITY(1, 1) NOT NULL,
+  "name" varchar2(20),
+  "age" int,
+  "birth" date,
+  "registerTime" datetime,
+  "salary" double,
+  PRIMARY KEY ("id")
+);
+
+-- 插入
+INSERT INTO hj_ycp.tb_person(NAME,age,birth,registerTime,salary) 
+VALUES('李四',27,CURRENT_DATE(),NOW(),3000.05);
+commit;
+ 
+-- 查询
+select * from hj_ycp.tb_person;
+================================================================
+3.记录日志
+
+文件名称： log4j.xml
+
+文件内容：
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+		<param name="Encoding" value="UTF-8" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%-5p %d{MM-dd HH:mm:ss,SSS} %m  (%F:%L) \n" />
+		</layout>
+	</appender>
+	<logger name="java.sql">
+		<level value="debug" />
+	</logger>
+	<logger name="org.apache.ibatis">
+		<level value="debug" />
+	</logger>
+	<root>
+		<level value="debug" />
+		<appender-ref ref="STDOUT" />
+	</root>
+</log4j:configuration>
+================================================================
+文件内容_详解：
+
+打印日志，apache（阿帕奇）的软件 log4j
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<!-- appender:日志生成器 -->
+	<!-- 
+		日志有两种： log4j.xml
+				 log4j.property
+	 -->
+	<!-- log4j.info("********come in") 等同于  System.out.println("********come in")-->
+	<!-- 日志输出等级： debug < info < error -->
+	<!-- 
+		try{
+		
+			 System.out.println("********begin");
+			 
+			 //业务代码
+			 
+			 log4j.info("********end");
+			 
+			 //分割线------------------------------------------
+			 
+			 System.out.println("********begin");
+			 
+			 //业务代码
+			 
+			 log4j.info("********end");
+			 
+		}catch(Exception e){
+			log4j.error(e.getmessage())
+		
+		}finally{
+			//资源释放
+		}
+	
+	
+	
+	 -->
+	 
+	 <!-- appender:追加，即日志生成器， ConsoleAppender： eclipse控制台生成器-->
+	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+	
+		<!-- param：参数 -->
+		<param name="Encoding" value="UTF-8" />
+		<!-- layout：布局 -->
+		<!-- PatternLayout：标准布局 -->
+		<layout class="org.apache.log4j.PatternLayout">
+			<!-- ConversionPattern：转换 -->
+			<!-- value值： 具体转换输出的样式 -->
+			<param name="ConversionPattern" value="%-5p %d{MM-dd HH:mm:ss,SSS} %m  (%F:%L) \n" />
+		</layout>
+	</appender>
+	
+	<!-- logger:日志会打印的内容： java.sql相关的日志 -->
+	<!-- level: 日志级别  -->
+	<logger name="java.sql">
+		<level value="debug" />
+	</logger>
+	
+	<!-- ibatis 就是 mybatis -->
+	<logger name="org.apache.ibatis">
+		<level value="debug" />
+	</logger>
+	
+	<!-- root:根 -->
+	<root>
+		<level value="debug" />
+		<!-- appender-ref：引用的日志生成器 -->
+		<appender-ref ref="STDOUT" />
+	</root>
+</log4j:configuration>
+================================================================
+4.添加配置文件mybatis-config.xml,从官方文档拷贝
+5.修改mybatis配置文件，数据库连接配置，先用直连后续换c3p0
+内容如下：
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.jdbc.Driver" />
+				<property name="url"
+					value="jdbc:mysql://localhost:3306/mybatis0607?useUnicode=true&amp;characterEncoding=UTF8" />
+				<property name="username" value="root" />
+				<property name="password" value="123456" />
+			</dataSource>
+		</environment>
+	</environments>
+
+	<mappers>
+		<mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml" />
+	</mappers>
+
+</configuration>
+
+================================================================
+内容详解如下：
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!-- configuration:配置 -->
+<configuration>
+
+	<!-- environments：环境（复数） -->
+	<!-- default：默认 -->
+	<!-- development：开发环境（只有一个环境） -->
+	<environments default="development">
+		<!-- environment：开发 （连接数据库的一个单元） -->
+		<!-- id:唯一标识 -->
+		<environment id="development">
+			<!-- transactionManager：事务管理器 -->
+			<transactionManager type="JDBC" />
+			<!-- dataSource：数据源 -->
+			<!-- type：类型（连接池） -->
+			<dataSource type="POOLED">
+				<!-- JDBC直连 -->
+				<property name="driver" value="dm.jdbc.driver.DmDriver" />
+				<property name="url" value="jdbc:dm://localhost:5236" />
+				<property name="username" value="SYSDBA" />
+				<property name="password" value="SYSDBA" />
+			</dataSource>
+		</environment>
+
+		<!-- 测试环境
+		<environment id="test">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.jdbc.Driver" />
+				<property name="url"
+					value="jdbc:mysql://localhost:3306/mybatis0607?useUnicode=true&amp;characterEncoding=UTF8" />
+				<property name="username" value="root" />
+				<property name="password" value="123456" />
+			</dataSource>
+		</environment>
+		 -->
+		 
+	</environments>
+
+	<!-- 注册： 接口实现类 -->
+	<mappers>
+		<mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml" />
+	</mappers>
+
+</configuration>
+
+================================================================
+6. 建对应的entity持久化实体
+  com.atguigu.mybatis.entities.Person
+================================================================
+7. 建Mapper接口并定义好方法（增删改查方法）
+  com.atguigu.mybatis.mapper.PersonMapper
+================================================================
+8. 建对应Mapper接口的XML映射文件
+  PersonMapper.xml
+================================================================
+9.将MapperXML映射文件配置进mybatis-config.xml
+
+	<!-- 注册： 接口实现类 -->
+	<mappers>
+		<mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml" />
+	</mappers>
+================================================================
+10.编写Junit单元测试类，执行CRUD操作
+
+================================================================
+
+-- orm 映射
+
+-- 一楼： 建表， tb_person
+-- 二楼： 对应的实体类, Person
+            通过java代码操作实体类Person，进而操作表 tb_person
+-- 三楼：定义数据库dao层的接口mapper（增删改查）
+     PersonMapper
+-- 四楼：定义数据库dao层接口mapper的实现类（XML文件是实现类）
+	 PersonMapper.xml
+
+            面向接口编程，把动作定义在接口中，动作的具体实现定义在实现类中
+================================================================
+
+@Test // 架子，orm框架都是这样的架子
+	public void test(){
+		
+		//声明会话session
+		SqlSession sqlSession = null;
+		
+		try {
+			//给会话session赋值
+			sqlSession = sqlSessionFactory.openSession();
+			
+			//通过dao接口，操作数据库
+			PersonMapper mapper = sqlSession.getMapper(PersonMapper.class);
+			
+			//调用dao接口的方法，对数据库 增删改查
+			//mapper.
+			
+			//提交事务
+			sqlSession.commit();
+		} catch (Exception e) {
+			//捕获异常
+			e.printStackTrace();
+		}finally{
+			//关闭数据库连接
+			if (sqlSession != null) {
+				sqlSession.close();
+			}
+		}
+	}
+================================================================
+打印对象的时候
+System.out.println(person);
+对象会自动调用自己的toString()方法。
+================================================================
+一、 入门case的小结
+01. XXXMapper.xml文件中，namespace 必须是接口全路径
+02. XXXMapper.xml中的id必须是接口里面的方法名 ，两者一致
+03. XXXMapper.xml中的parameterType类型必须和对应方法的形参一致
+04. XXXMapper.xml中的resultType类型必须和对应方法的返回值类型一致
+05. 每个线程都应该有它自己的SqlSession实例。
+    SqlSession的实例不能共享使用，它也是线程不安全的,定义为局部变量
+06. mapper接口实现动态代理对象
+              定义：只需要编写mapper接口的（等价于传统的dao接口），
+          Impl实现类，也即动态代理+面向接口
+                         XXXdao接口-------->XXXMapper.java
+                         XXXdao接口Impl实现类-------->XXXMapper.xml
+================================================================
+sql语句写在配置文件里，修改sql语句，项目不需要重新部署
+================================================================
+mybatis两句话总结： 1.把sql提到xml文件里 2.用mapper接口来操作
+================================================================
+JavaEE程序员，半个sql工程师，DBA 即 数据库工程师
+================================================================
+JSP --> Servlet --> Service --> Dao --> 数据库
+总结： 网站 即 操作数据库的界面
+================================================================
+再次和JDBC、Hibernate、JPA对比学习
+mybatis解决了哪些问题，为何有它一席之地
+
+相对于JDBC
+  1. Sql语句配置在XXXXmapper.xml文件中与java代码分离
+  2. 数据库连接池
+  3. Where条件的频繁变化，Mybatis自动将java对象映射至sql语句，
+                 通过statement中的parameterType定义输入参数的类型。
+                
+相对于Hibernate
+  1. Hibernate太重，mybatis轻量级
+  2. 严格来说，Mybatis是个半自动化的SQL Mappering映射框架，
+                因为MyBatis需要程序员自己编写Sql语句
+  3. 学习门槛低，简单易学，看官网文档都知道，不到100页，可以快速上手。
+                程序员直接编写原生态sql，可严格控制sql执行性能，
+                sql在手，天下我有。
+
+相对于JPA
+
+相对于Spring Data
+================================================================
+
+数据库里的表 --> entity 实体类 --> 操作entity的接口 --> 接口实现类 xxxMapper.xml
+
+注解版 （实现零配置）
+
+注解版的 PersonMapperAnnotation 不再需要配置文件
+
+PersonMapperAnnotation是自定义的，需要注册进 mybatis
+
+	<mappers>
+		<mapper class="com.atguigu.mybatis.mapper.PersonMapperAnnotation"/>
+	</mappers>
+================================================================
+
+Mapper+Annotation入门增强
+
+传统Dao
+  Dao接口
+  DaoImpl
+  
+Myabtis的CRUD操作常用API
+  1. 还是以PersonMapper.java为例，再来一次CRUD，
+               调用mybatis的crud提供的其它API，重写测试类，其它不用变
+
+Mybatis也是支持注解，^_^
+   1. 新写接口
+   2. 在接口的方法上面新增注解
+        
+	 public interface PersonMapperAnnotation
+	{
+	 @Insert("insert into tbl_person(name,age,birth,registerTime,salary) "
+	    + "values(#{name},#{age},#{birth},#{registerTime},#{salary})")
+	 public void add(Person person);
+	 
+	 @Delete("delete from tbl_person where id=#{id}")
+	 public void delete(Integer id);
+	 
+	 @Update("update tbl_person set name=#{name},age=#{age},birth=#{birth},registerTime=#{registerTime},salary=#{salary} where id=#{id}")
+	 public void update(Person person);
+	 
+	 @Select("select * from tbl_person where id=#{id}")
+	 public Person getPersonById(Integer id);
+	 
+	 @Select("select * from tbl_person")
+	 public List<Person> getAllPerson();
+	}
+
+   3. 到mybatis的配置文件里面，注册该接口类(含注解)
+   
+	        <!-- 配置注解接口的类 -->
+	   <mapper class="com.atguigu.mybatis.mapper.PersonMapperAnnotation"/>
+
+                如果没有注册进配置文件，报如下异常信息：
+      org.apache.ibatis.binding.BindingException: 
+      Type interface com.atguigu.mybatis.mapper.PersonMapperAnnotation is not known to the MapperRegistry.
+
+    4. 测试，通过getMapper重新获得，注解接口版的XXXMapper.class
+        
+		@Test
+		 public void test_Add()
+		 {
+			   SqlSession sqlSession = null;
+		   try
+		   {
+			    sqlSession = sqlSessionFactory.openSession();
+			    PersonMapperAnnotation personMapper = sqlSession.getMapper(PersonMapperAnnotation.class);
+			    
+			    Person person = new Person();
+			    person.setAge(42);
+			    person.setBirth(new Date());
+			    person.setName("左冷禅");
+			    person.setRegisterTime(new Date());
+			    person.setSalary(4500.05);
+			    
+			    personMapper.add(person);
+			    
+			    sqlSession.commit();
+		   } catch (Exception e){
+		    	e.printStackTrace();
+		   }finally{
+		    	if(sqlSession != null) sqlSession.close();
+		   }
+		 }
+================================================================
+Mybatis的XML映射
+配置文件mybatis-config.xml
+
+MyBatis的XML配置文件包含了影响MyBatis行为甚深的设置和属性信息
+
+================================================================
+//配置（根标签）
+configuration
+================================================================
+properties 属性： JDBC--->C3P0,添加外部数据库链接
+================================================================
+  src文件夹下面新建db.properties
+               文件内容如下：
+	    jdbc.user=root
+		jdbc.password=123456
+		jdbc.driverClass=com.mysql.jdbc.Driver
+		jdbc.jdbcUrl=jdbc:mysql://127.0.0.1:3306/mybatis0607?useUnicode=true&amp;characterEncoding=UTF8
+================================================================
+      修改mybatis-config.xml
+          修改内容如下：
+================================================================
+ <!-- 引入外部资源文件，将数据库配置设为外部链接 -->
+ <properties resource="db.properties"></properties>
+
+    <environment id="development">
+    <!-- 使用jdbc事务管理-->
+    <transactionManager type="JDBC" />
+    <!-- 数据库连接池-->
+    <dataSource type="POOLED">
+		<property name="driver"    value="${jdbc.driverClass}" />
+		<property name="url"        value="${jdbc.url}" />
+		<property name="username"   value="${jdbc.user}" />
+		<property name="password"   value="${jdbc.password}" />
+    </dataSource>
+   </environment>
+================================================================
+settings  全局参数定义
+
+	<settings>
+		<!-- 全局映射器启用缓存 -->
+		<setting name="cacheEnabled" value="true" />
+		
+		<!-- 查询时，关闭关联对象即时加载以提高性能 -->
+		<setting name="lazyLoadingEnabled" value="true" />
+		
+		<!-- 设置关联对象加载的形态，此处为按需加载字段(加载字段由SQL指 定)，不会加载关联表的所有字段，以提高性能 -->
+		<setting name="aggressiveLazyLoading" value="false" />
+		
+		<!-- 对于未知的SQL查询，允许返回不同的结果集以达到通用的效果 -->
+		<setting name="multipleResultSetsEnabled" value="true" />
+		
+		<!-- 允许使用列标签代替列名 -->
+		<setting name="useColumnLabel" value="true" />
+		
+		<!-- 允许使用自定义的主键值(比如由程序生成的UUID 32位编码作为键值)，数据表的PK生成策略将被覆盖 -->
+		<setting name="useGeneratedKeys" value="true" />
+		
+		<!-- 给予被嵌套的resultMap以字段-属性的映射支持 -->
+		<setting name="autoMappingBehavior" value="FULL" />
+		
+		<!-- 对于批量更新操作缓存SQL以提高性能 -->
+		<setting name="defaultExecutorType" value="BATCH" />
+		
+		<!-- 数据库超过25000秒仍未响应则超时 -->
+		<setting name="defaultStatementTimeout" value="25000" />
+	</settings>
+================================================================
+typeAliases 别名处理器
+
+别名是为 Java类型命名一个短的名字。
+它只和 XML 配置有关，只用来减少类名重复的部分。
+配置了mybatis-config.xml会影响XXXMapper.xml的使用
+================================================================
+默认
+================================================================
+自定义
+   单个
+ <typeAliases>
+   <!-- 单独为Perosn进行别名设置 -->
+   <typeAlias type="com.atguigu.mybatis.entities.Person" alias="Person"/>
+ </typeAliases>
+
+ <insert id="add" parameterType="Person">  红色部分，前面的包名已经没有了。
+  insert into tbl_person(name,salary,birth,registerTime) 
+      values(#{name},#{salary},#{birth},#{registerTime});
+ </insert>
+================================================================
+  多个  
+ <typeAliases>
+   <!-- 单独为Perosn进行别名设置 
+   <typeAlias type="com.atguigu.mybatis.entities.Person" alias="Person"/>
+     -->
+   
+   <!--批处理别名，扫描整个包下的类 -->
+   <package name="com.atguigu.mybatis.entities"/>
+ </typeAliases> 
+
+ <insert id="add" parameterType="Person"> 红色部分，前面的包名已经没有了。
+	 insert into tbl_person(name,salary,birth,registerTime) 
+	 values(#{name},#{salary},#{birth},#{registerTime});
+ </insert>
+================================================================
+typeHandlers 类型处理器
+
+用于java类型和jdbc类型映射
+
+Mybatis的映射基本已经满足，不太需要重新定义
+================================================================
+environments 环境
+
+  1. environment 环境变量
+  2. transactionManager 事务管理器
+  3. dataSource 数据源 
+================================================================
+mappers 映射器
+
+  1. resource: XXXMapper.xml文件（引用静态文件）
+       <mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml"/>
+
+  2. class: 接口注解实现
+       <mapper class="com.atguigu.mybatis.mapper.PersonMapper"/>
+
+  3. url:外部路径
+       <mapper url="file:///D:\43\mybatis_01\config\sqlmap\Person.xml" />
+                  不建议使用：配置文件一定要放在工程里面，一般放在工程的src类路径下
+  
+  4. package
+  
+	   <mappers>
+		   <!-- XML配置文件（静态文件） -->
+		   <mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml"/>
+		   
+		   <!-- Annotation（具体类） -->
+		   <mapper class="com.atguigu.mybatis.mapper.PersonMapper"/>
+		   
+		   <!-- 批量导入 -->
+		   <!-- 注册mapper包下的所有mapper接口,此种方法要求mapper接口名称和mapper映射文件名称遵守mabatis规范，且放在同一个目录中 -->
+		   <package name="com.atguigu.mybatis.mapper"/>
+	   </mappers>
+================================================================
+SQL映射的XML文件 ：  XXXMapper.xml
+即 接口的实现类
+================================================================
+insert、delete、update、select
+
+   主键生成方式
+    Person插入数据后想获得主键
+================================================================
+                有自增Mysql，具体操作如下：
+        
+        xml文件版：
+               
+		<insert id="add" parameterType="Person" useGeneratedKeys="true" keyProperty="id">
+		   insert into tbl_person(name,salary,birth,registerTime) 
+		   values(#{name},#{salary},#{birth},#{registerTime});
+		</insert>
+		
+		注解版：
+		@Options(useGeneratedKeys=true,keyProperty="id")
+================================================================
+                无自增Oracle，具体操作如下：
+                
+		<insert id="add" parameterType="Person">
+		   <!-- 
+		        selectKey： 查询主键
+		        order：顺序    
+		        BEFORE：在生成主键之前
+		        keyProperty： 主键指定的java类对应的字段
+		        resultType： 返回的主键类型（一般为int）
+		        crm_seq： 序列名称
+		        dual：数据库默认的伪表
+		   -->
+		   <selectKey order="BEFORE" keyProperty="id" resultType="_int">
+		      select crm_seq.nextval from dual
+		   </selectKey>
+		   
+		  insert into tbl_person(name,salary,birth,registerTime) 
+		  values(#{name},#{salary},#{birth},#{registerTime});
+		  
+		</insert>
+================================================================
+parameterType(输入参数类型)
+
+1. 传入简单类型，比如按照id查Person
+     parameterType="Integer"
+
+2. 传入POJO类型，前台选了多个条件
+================================================================
+封装的概念
+public Person getPerson(Integer id, String name, int age, double salary);
+
+去超市买东西，
+id： 牛奶
+name： 咖啡
+age： 香蕉
+salary： 口香糖
+
+结账的时候，需要拿一个袋子装（牛奶，咖啡，香蕉，口香糖）
+
+id，name，age，salary 这些变量需要写在一个类里，通过一个对象统一调用
+================================================================
+新开一个例子
+================================================================
+1. 新建表tb_cat
+
+CREATE TABLE "hj_ycp"."tb_cat" (
+  "id" INT IDENTITY(1, 1) NOT NULL,
+  "catName" varchar2(200),
+  "age" INT,
+  "birth" date,
+  PRIMARY KEY ("id")
+);
+
+INSERT INTO hj_ycp.tb_cat(catName,age,birth) VALUES('whiteCat',7,CURRENT_DATE());
+INSERT INTO hj_ycp.tb_cat(catName,age,birth) VALUES('blackCat',5,CURRENT_DATE());
+INSERT INTO hj_ycp.tb_cat(catName,age,birth) VALUES('yellowCat',3,CURRENT_DATE());
+commit;
+
+select * from hj_ycp.tb_cat;
+================================================================
+2. 新建Cat.java类
+
+	package com.atguigu.mybatis.entities;
+	
+	import java.util.Date;
+	
+	public class Cat
+	{
+	 private Integer id;
+	 private String  catName;
+	 private int     age;
+	 private Date    birth;
+	}
+================================================================
+3. 新建CatMapper接口+方法
+	
+	public interface CatMapper
+	{
+	 public List<Cat> getCatByConditions(Cat cat);
+	 
+	}
+================================================================
+4. 新建CatMapper.xml
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	
+	<mapper namespace="com.atguigu.mybatis.mapper.CatMapper">
+	 
+	 <select id="getCatByConditions" parameterType="Cat" resultType="Cat">
+	   select * from tbl_cat where id=#{id} and age=#{age} and birth=#{birth}
+	 </select>
+	 
+	</mapper>
+================================================================
+5. 通配注册或单独注册进mybatis配置文件，否则报：is not known to the MapperRegistry
+================================================================
+6. 新建单元测试类
+================================================================
+7. 演示下like并讲解
+
+      接口新建方法 getCatByCatName
+	接口定义
+	public List<Cat> getCatByCatName(String catName);
+================================================================
+like： 使用 #{}
+
+Mapper.xml定义
+<select id="getCatByCatName" parameterType="Cat" resultType="Cat">
+ SELECT * FROM tbl_cat WHERE catName LIKE #{catName}
+</select>
+
+如果使用#{},方法里加入%
+List<Cat> result = catMapper.getCatByCatName("%cat%");
+
+推荐用它，比较安全
+================================================================
+      接口新建方法 getCatByCatName2
+	接口定义
+	public List<Cat> getCatByCatName2(String catName);
+	
+like： 使用 ${}
+
+Mapper.xml定义
+<select id="getCatByCatName" parameterType="String" resultType="Cat">
+ SELECT * FROM tbl_cat WHERE catName LIKE '%${value}%'
+</select>
+
+如果使用${},方法里直接写值
+List<Cat> result = catMapper.getCatByCatName("Cat");
+
+备注：${}括号中只能是value
+================================================================
+================================================================
+3. 传入HashMap
+
+接口新增方法
+	public List<Cat> getCatByMap(Map<String,Object> map);
+	
+映射文件
+	<select id="getCatByMap" parameterType="hashmap" resultType="Cat">
+	   SELECT * FROM tbl_cat WHERE catName LIKE #{catName} and id=#{id}
+	</select>
+
+测试类
+@Test
+ public void test_GetCatByMap()
+ {
+ 	   //声明sqlSession
+	   SqlSession sqlSession = null;
+	   
+	   try
+	   {
+	        //给sqlSession赋值，工厂打开一个新的sqlSession会话
+		    sqlSession = sqlSessionFactory.openSession();
+		    
+		    //sqlSession获取接口实现类对象
+		    CatMapper catMapper = sqlSession.getMapper(CatMapper.class);
+		    
+		    //准备入参map
+		    Map<String,Object> map = new HashMap<String,Object>();
+		    map.put("catName","%cat%");
+		    map.put("id","3");
+		    
+		    //调用接口实现类的具体方法，接收返回结果
+		    List<Cat> list = catMapper.getCatByMap(map);
+		    
+		    //打印结果信息
+		    System.out.println(list.size());
+		    
+	   }catch (Exception e){
+	        //打印异常信息
+	    	e.printStackTrace();
+	   }finally{
+	        //关闭sqlSession会话
+	    	if(sqlSession != null) sqlSession.close();
+	   }
+ } 
+================================================================
+4. 口袋POJO，混合型传入参数，进公司看团队技术流风格
+================================================================
+resultType(输出参数类型)
+
+1. 输出单个POJO对象(前面已讲过)
+================================================================
+2. 输出多个List<POJO>(前面已讲过)
+================================================================
+3. 输出hashmap
+
+   说明：select的各个字段名称作为map的key，值写入value
+
+接口
+   public Map<String,Object> getCatByMap2(int id);
+
+映射文件
+	<select id="getCatByMap2" parameterType="int" resultType="hashmap">
+	   SELECT id,catName,age,birth FROM tbl_cat WHERE id=#{id}
+	</select>
+
+测试类
+@Test
+ public void test_GetCatByMap2()
+ {
+	    SqlSession sqlSession = null;
+   try
+   {
+	    sqlSession = sqlSessionFactory.openSession();
+	    CatMapper catMapper = sqlSession.getMapper(CatMapper.class);
+	    
+	    Map<String,Object> map = catMapper.getCatByMap2(1);
+	    Iterator<Map.Entry<String,Object>> it = map.entrySet().iterator();
+	    while(it.hasNext())
+	    {
+	      Map.Entry<String,Object> entry = it.next();
+	      System.out.println(entry.getKey()+"\t"+entry.getValue());
+	    }
+	    sqlSession.close();
+   }catch (Exception e){
+	    e.printStackTrace();
+   }finally{
+	    if(sqlSession != null) sqlSession.close();
+   }
+ }
+
+================================================================
+================================================================
+resultMap(结果集映射)
+
+问题
+  POJO里面的field和数据库表里面column一一对应的话，
+   resultType可以指定pojo将查询结果映射为pojo
+   
+     假如不一致那？新建Dog演示
+================================================================
+Dog演示
+
+新建tb_dog
+================================================================
+-- 狗
+
+新建tb_dog
+
+CREATE TABLE "hj_ycp"."tb_dog" (
+ "id" INT IDENTITY(1, 1) NOT NULL,
+ "dog_Name" varchar2(200),
+ "dog_Weight" int,
+ PRIMARY KEY ("id")
+);
+
+INSERT INTO hj_ycp.tb_dog(dog_Name,dog_Weight) VALUES('ww1',10);
+INSERT INTO hj_ycp.tb_dog(dog_Name,dog_Weight) VALUES('ww2',15);
+commit;
+
+SELECT * FROM hj_ycp.tb_dog;
+
+================================================================
+新建Dog.java
+
+public class Dog
+{
+ private Integer id;
+ private String  dogName;
+ private int    dogWeight;
+}
+================================================================
+新建DogMapper接口,getDogByDogName
+
+public interface DogMapper
+{
+ public List<Dog> getDogByDogName(String dogName);
+}
+================================================================
+新建DogMapper.xml
+
+ <select id="getDogByDogName" parameterType="String" resultType="Dog">
+   SELECT id,dog_Name,dog_Weight FROM tbl_dog WHERE dog_Name LIKE #{dogName}
+ </select>
+================================================================
+通配注册或者新注册到Mybatis配置文件
+================================================================
+test
+
+DogMapper.xml文件
+
+<select id="getDogByDogName" parameterType="String" resultType="Dog">
+   SELECT *  
+   FROM tbl_dog WHERE dog_Name LIKE #{dogName}
+</select>
+================================================================
+test code
+
+public class DogMapperTest
+{
+ 
+	 private SqlSessionFactory sqlSessionFactory = null;
+ 
+ @Before
+ public void createSqlSessionFactory() throws IOException
+ {
+	   String resource = "mybatis-config.xml";
+	   InputStream inputStream = Resources.getResourceAsStream(resource);
+	   sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+ }
+
+ @Test
+ public void test()
+ {
+	   SqlSession sqlSession = sqlSessionFactory.openSession();
+	   
+	   DogMapper dogMapper = sqlSession.getMapper(DogMapper.class);
+	   
+	   List<Dog> list = dogMapper.getDogByDogName("%dog%");
+	   
+	   for (Dog dog : list)
+	   {
+		   System.out.println(dog.toString());
+	   }
+		   sqlSession.close();
+ }
+}
+================================================================
+别名查询
+
+<select id="getDogByDogName" parameterType="String" resultType="Dog">
+   SELECT 
+      id as id, 
+      dog_Name as dogName, 
+      dog_Weight as dogWeight  
+   FROM 
+      tbl_dog 
+   WHERE 
+      dog_Name LIKE #{dogName}
+</select>
+================================================================
+结果映射
+
+    <!-- 靠resultMap来解决，类名和字段名不一致的情况 -->
+    <!--  id: 查询结果集的唯一标识
+          column： 数据库字段
+          property： POJO类的属性字段
+          result： 映射结果，表示将数据库的值对应映射给POJO的类属性上
+    -->
+ <resultMap id="dogResultMap" type="Dog" >
+   <id column="id" property="id"/>
+   <result column="dog_Name" property="dogName"/>
+   <result column="dog_Weight" property="dogWeight"/>
+ </resultMap>
+ <select id="getDogByDogName2" parameterType="String" resultMap="dogResultMap">
+   SELECT id,dog_Name,dog_Weight  FROM tbl_dog WHERE dog_Name LIKE #{dogName}
+ </select>
+================================================================
+================================================================
+动态SQL
+
+新建Student演示
+================================================================
+建表
+
+drop table hj_ycp.tbl_student;
+
+CREATE TABLE "hj_ycp"."tb_student" (
+"id" INT IDENTITY(1, 1) NOT NULL,
+"name" VARCHAR2(300),
+"score" DOUBLE,
+"birth" DATE,
+"age" INT,
+PRIMARY KEY ("id")
+);
+
+INSERT INTO hj_ycp.tb_student(NAME,score,birth,age) VALUES('li4',89.5,CURRENT_DATE(),22);
+INSERT INTO hj_ycp.tb_student(NAME,score,birth,age) VALUES('li5',93.5,CURRENT_DATE(),23);
+INSERT INTO hj_ycp.tb_student(NAME,score,birth,age) VALUES('li6',77.5,CURRENT_DATE(),24);
+
+SELECT * FROM hj_ycp.tb_student;
+================================================================
+建entity
+
+public class Student
+{
+ private Integer id;
+ private String  name;
+ private double  score;
+ private Date birth;
+ private int age;
+}
+================================================================
+建接口
+
+public interface StudentMapper {
+	
+	public List<Student> getByAge(int age);
+	
+}
+================================================================
+建Mapper映射文件
+
+	<select id="getByAge"
+	        statementType="PREPARED"
+	        parameterType="Integer"
+	        resultType="com.atguigu.mybatis.entities.Student">
+       select id,name,score,birth,age from hj_ycp.tb_student where age>#{age};
+	</select>
+================================================================
+注册
+
+================================================================
+测试，
+public List<Student> getByAge(int age);
+
+
+================================================================
+================================================================
+真正的动态sql语句
+
+动态sql条件： if
+
+接口方法
+   public List<Student> getStudent_If(int age);
+================================================================
+传入单参数age返回List<Student>，有就拼接没有就不参与，按照年龄查学生
+================================================================
+重点难点：
+      单参数时，mybatis找不到参数错误现象和处理
+
+单独传入一个值，在开发中经常看到如下错误：
+org.apache.ibatis.exceptions.PersistenceException: 
+### Error querying database. Cause: org.apache.ibatis.reflection.ReflectionException: There is no getter for property named 'age' in 'class java.lang.Integer'
+### Cause: org.apache.ibatis.reflection.ReflectionException: There is no getter for property named 'age' in 'class java.lang.Integer'
+ 
+三种方法处理：
+
+1 接口方法中添加注解@Param
+ 之前：public List<Student> getStudentByIf(int age);
+ 之后：public List<Student> getStudentByIf(@Param("age") int age);
+
+2 XXXMapper.xml配置文件里面写_parameter
+ <select id="getStudentByIf" parameterType="int" resultType="Student">
+    select * from tbl_student where 1 = 1
+       <if test="_parameter > 0">
+          and age = #{age}
+       </if>
+ </select>
+
+3 直接传递对象
+================================================================
+================================================================
+动态sql条件： where
+
+接口方法
+public interface StudentMapper{
+	public List<Student> getStudent_If(int age);
+	public List<Student> getStudent_Where(Student student);
+}
+================================================================
+Mapper文件
+
+<mapper namespace="com.atguigu.mybatis.mapper.StudentMapper">
+ 
+ <select id="getStudentById" parameterType="int" resultType="Student">
+   select * from tbl_student where id=#{id}
+ </select>
+ 
+ <!-- 动态sql： 条件where/if -->
+ <select id="getStudent_Where" parameterType="Student" resultType="Student">
+   select * from tbl_student
+   <where>
+    <if test=" score !=null and score != '' ">
+      and score > #{score}
+    </if>
+    <if test=" name !=null and name != '' ">
+      and name like #{name}
+    </if>    
+   </where>
+ </select>
+</mapper>
+================================================================
+where子句以and 或者or开头，它会自动删除第一个and或者or
+   一般建议Where和if结合起来用
+================================================================
+================================================================
+动态sql条件： choose/when/otherwise    choose_when_otherwise
+
+类似于java中的switch/case，
+    只取一个条件，只要前面的一个条件满足，后面的条件不再考虑
+================================================================
+接口方法
+   public List<Student> getStudent_choosewhenotherwise(Map<String,Object> map);
+================================================================
+Mapper文件
+
+<select id="getStudentByOption" parameterType="hashmap" resultType="Student">
+   select * from tbl_student
+   <choose>
+    <when test=" id != null and id !='' ">
+      where id >= #{id}
+    </when>
+    <when test=" birth != null and birth !='' ">
+      where birth > #{birth}
+    </when>
+    <otherwise>
+      where 1 = 1
+    </otherwise>
+   </choose>
+ </select>
+================================================================
+================================================================
+动态sql条件： foreach
+
+类似于SQL里面的IN查询
+================================================================
+if + where + foreach
+
+接口
+  public List<Student> getStudent_foreach(Map<String,Object> map);
+================================================================
+映射文件
+
+<!-- 
+    说明：if test="ages" 这个ages值，会直接和入参去要，通过getAges()方法
+      foreach collection="ages" 这个ages值决定了ages这个入参的类型是集合
+      以上两个标签提到的ages，
+                                          第一个决定了入参对象中必须含有ages这个对象
+                                          第二个决定了ages这个对象的类型必须是集合
+  -->
+  <select id="getStudentByForEach" parameterType="Map" resultType="Student">
+	   select * from tbl_student
+	   <if test="ages != null and ages !='' ">
+		    <where>
+			      age in
+				      <foreach item="ages" collection="ages" open="(" separator="," close=")">
+					       #{ages}
+				      </foreach>
+		    </where>
+	   </if>
+  </select>
+================================================================
+test测试
+
+@Test
+ public void test_ForEach()
+ {
+	   SqlSession sqlSession = null;
+	   Map<String,Object> map = new HashMap<String,Object>();
+	   try
+	   {
+		    sqlSession = sqlSessionFactory.openSession();
+		    StudentMapper studentMapper = sqlSession.getMapper(StudentMapper.class);
+		    
+		    List<Integer> ages = new ArrayList<Integer>();
+		    ages.add(33);
+		    ages.add(64);
+		    ages.add(0);
+		    
+		    map.put("ages",ages);
+		    
+		    List<Student> list = studentMapper.getStudentByForEach(map);
+		    for (Student element : list)
+		    {
+			    System.out.println(element.toString());
+		    }
+	   } catch (Exception e){
+		    e.printStackTrace();
+	   }finally{
+		    if(sqlSession != null)sqlSession.close();
+	   }
+ }
+================================================================
+================================================================
+动态sql条件： trim
+
+接口
+  public List<Student> getStudentByTrim(Student student);
+     或者
+  public List<Student> getStudentByTrim(Map<String,Object> map);
+================================================================
+映射文件
+
+  <select id="getStudentByTrim" parameterType="Student" resultType="Student">
+	   select * from tbl_student
+		   <trim prefix="where" prefixOverrides="and|or">
+			    <if test="age > 0">
+				      and age = #{age}
+			    </if>
+			    <if test="name !=null and name !='' ">
+				      and name like #{name}
+			    </if>    
+		   </trim>
+  </select>
+================================================================
+trim+if,能替代where
+================================================================
+前后缀,动态覆盖,拼装insert
+
+接口
+public void insertByTrim(Map<String,Object> map);
+
+映射文件
+
+<insert id="insertByTrim" parameterType="map">
+   insert into hj_ycp.tb_student
+	   <trim prefix="(" suffix=")" suffixOverrides=",">
+		    <if test="name != null">
+		      name,
+		    </if>
+		    <if test="score != null">
+		      score,
+		    </if>
+		    <if test="birth != null">
+		      birth,
+		    </if>
+		    <if test="age != null">
+		      age,
+		    </if>                 
+	   </trim>
+	   <trim prefix=" values (" suffix=")" suffixOverrides=",">
+		    <if test="name != null">
+		      #{name},
+		    </if>
+		    <if test="score != null">
+		      #{score},
+		    </if>
+		    <if test="birth != null">
+		      #{birth},
+		    </if>
+		    <if test="age != null">
+		      #{age},
+		    </if>    
+	   </trim>
+</insert>
+================================================================
+================================================================
+动态sql条件： set
+
+动态包含需要更新的列set+if
+    会动态前置set关键字
+    自动删除最后一个英文逗号
+
+修改操作需要commit提交
+
+    接口
+    public void updateStudent(Student student);
+    
+    映射文件
+  <update id="updateStudent" parameterType="Student">
+	   <!-- 
+		   update tbl_student 
+		   set name=#{name},score=#{score},birth=#{birth},age=#{age} 
+		   where id=#{id};
+	   -->
+	   update tbl_student
+		   <set>
+			    <if test="name  !=null and name !=''">name=#{name},</if>
+			    <if test="score !=null and score !=''">score=#{score},</if>
+			    <if test="birth !=null and birth !=''">birth=#{birth},</if>
+			    <if test="age !=null and age !=''">age=#{age},</if>
+		   </set>
+	   where id=#{id}     
+  </update>
+================================================================
+================================================================
+关联查询
+
+通用步骤:
+ 1. 新建_数据表+新增_内容数据
+ 2. 建entity
+ 3. Mapper接口
+ 4. 对应接口的Mapper.xml
+ 5. 通配注册或在mybatis-config.xml里面新增映射配置
+ 6. 测试类
+================================================================
+一对一
+
+一、配置版
+
+  1. 新建_数据表  + 新增_内容数据
+  
+-- 创建表: hj_ycp.tb_key
+CREATE TABLE "hj_ycp"."tb_key" (
+  "id" INT IDENTITY(1, 1) NOT NULL,
+  "keyName" VARCHAR2(20),
+  PRIMARY KEY ("id")
+);
+
+-- 创建表： hj_ycp.tb_lock
+CREATE TABLE "hj_ycp"."tb_lock" (
+  "id" INT IDENTITY(1, 1) NOT NULL,
+  "lockName" VARCHAR2(20),
+  "key_id" INT,
+  PRIMARY KEY ("id") 
+);
+
+-- 添加外键
+alter table hj_ycp.tb_lock add constraint fk_tbKey_id
+foreign key(key_id)
+references hj_ycp.tb_key(id);
+
+-- 联合查询
+SELECT * FROM hj_ycp.tb_key aa, hj_ycp.tb_lock bb
+WHERE aa.id = bb.key_id AND bb.id=1
+
+-- ===============================================
+
+SELECT * FROM 
+  hj_ycp.tb_key aa
+LEFT OUTER JOIN 
+  hj_ycp.tb_lock bb
+ON 
+  aa.id = bb.key_id 
+WHERE 
+  bb.id=1;
+
+-- ===============================================
+-- 添加外键说明
+/**
+alter table sc
+add constraint fk_student（外键约束的名称）
+foreign key(sno)//将sc表中的sno设为外键
+references student(sno);关联student表的sno主键
+**/
+-- ===============================================
+================================================================
+建entity
+
+public class Key
+{
+ private Integer id;
+ private String  keyName;
+
+}
+
+public class Lock
+{
+ private Integer id;
+ private String  lockName;
+ private Key     key;
+}
+================================================================
+Mapper接口定义
+
+KeyMapper.java类
+
+public interface KeyMapper
+{
+ public Key getKeyById(Integer id);
+}
+
+LockMapper.java类
+
+public interface LockMapper
+{
+ public Lock getLockById(Integer id);
+}
+================================================================
+KeyMapper.xml定义
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.KeyMapper">
+
+ <select id="getKeyById" parameterType="Integer" resultType="Key">
+   select * from tbl_key where id=#{id}
+ </select>
+ 
+</mapper>
+================================================================
+LockMapper.xml实现，第一种(ResultMap+连接查询)
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<!-- 
+	  association：用于1:1关联查询
+	  javaType：对象属性的完成类型，建议包名+类名
+	  property：entity对象的属性名称
+	  column：对应数据库表的字段
+	 -->
+<mapper namespace="com.atguigu.mybatis.mapper.LockMapper">
+	 <resultMap id="LockResultMap" type="Lock">
+		 <id property="id" column="id"/>
+		 <result property="lockName" column="lockName"/>
+		 <association property="key" javaType="com.atguigu.mybatis.entities.Key">
+			  <id property="id" column="id"/>
+			  <result property="keyName" column="keyName"/>
+		 </association>
+	 </resultMap> 
+	 <select id="getLockById" parameterType="Integer" resultMap="LockResultMap" >
+		 SELECT * FROM tbl_lock ,tbl_key 
+		 WHERE tbl_lock.key_id = tbl_key.id 
+		 AND tbl_lock.id = #{id}
+	 </select>
+</mapper>
+================================================================
+LockMapper.xml实现，第二种(ResultMap+select查询)
+
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.LockMapper">
+
+	<resultMap type="Lock" id="LockResultMap">
+		   <id property="id" column="id"/>
+		   <result property="lockName" column="lockName"/>
+		   <association property="key" column="key_id"  select="com.atguigu.mybatis.mapper.KeyMapper.getKeyById"/>
+	 </resultMap> 
+	 <select id="getLockById" parameterType="Integer" resultMap="LockResultMap" >
+		  SELECT * FROM tbl_lock where id=#{id}
+	 </select>
+</mapper>
+
+lock外键是key表的主键
+<association property="key" column="key_id"  select="com.atguigu.mybatis.mapper.KeyMapper.getKeyById"/>
+================================================================
+延时加载介绍
+
+是什么？按需取数据
+
+怎么用？
+
+在mybatis核心配置文件中，修改如下配置：lazyLoadingEnabled、aggressiveLazyLoading
+ 
+ <settings>
+   <setting name="lazyLoadingEnabled"       value="true"/>
+   <setting name="aggressiveLazyLoading"    value="false"/>  
+ </settings>
+================================================================
+================================================================
+注解版
+
+KeyMapperAnnotation.java类
+
+public interface KeyMapperAnnotation
+{
+ @Select("select * from tbl_key where id=#{id}")
+ public Key getKeyById(Integer id);
+}
+
+LockMapperAnnotaion.java类
+
+public interface LockMapperAnnotaion
+{
+ @Select("select * from tbl_lock where id=#{id}")
+ @Results({
+   @Result(id=true,property="id",column="id"),
+   @Result(property="lockName",column="lockName"),
+   @Result(property="key",column="key_id",one=@One(select="com.atguigu.mybatis.mapper.KeyMapperAnnotation.getKeyById"))
+ })
+ public Lock getLockById(Integer id);
+}
+
+================================================================
+测试类junit
+================================================================
+================================================================
+一对多
+
+需求：dept和emp
+
+建表
+-- 员工与部门表：建表语句
+drop table "hj_ycp"."tb_dept";
+drop table "hj_ycp"."tb_emp";
+
+CREATE TABLE "hj_ycp"."tb_dept" (
+ "id" INT IDENTITY(1, 1) NOT NULL,
+ "deptName" VARCHAR2(30),
+ "locAdd" VARCHAR2(40),
+ PRIMARY KEY ("id")
+);
+
+CREATE TABLE "hj_ycp"."tb_emp" (
+ "id" INT IDENTITY(1, 1) NOT NULL,
+ "name" VARCHAR2(20),
+ "deptId" INT,
+ PRIMARY KEY ("id"),
+ CONSTRAINT "fk_dept_id" FOREIGN KEY ("deptId") REFERENCES "hj_ycp"."tb_dept" ("id")
+);
+================================================================
+手动新增数据
+================================================================
+一对多
+
+先是单向1:N，一个部门下有多个员工
+
+建entity
+
+public class Emp {
+	private Integer id;
+	private String name;
+}
+
+public class Dept {
+	private Integer id;
+	private String deptName;
+	private String locAdd;
+	private List<Emp> emps;
+}
+================================================================
+新建DeptMapper接口和方法,按照id查询部门
+
+public interface DeptMapper
+{
+ public Dept getDeptById(Integer id);
+}
+================================================================
+新建DeptMapper.xml
+
+<mapper namespace="com.atguigu.mybatis.mapper.DeptMapper">
+ <resultMap id="DeptResultMap" type="Dept">
+	   <id property="id" column="id"/>
+	   <result property="deptName" column="deptName"/>
+	   <result property="locAdd" column="locAdd"/>
+	   
+	   <!-- 
+	   collection :一对多关联查询
+       ofType：集合中元素对象的类型
+       
+	   private List<Emp> emps; 
+	   column="id"集合对象主键，
+	   select按照外键键查询，通过deptid查出emp给dept
+	   -->   
+	   <collection property="emps" column="id" ofType="Emp" 
+	    select="com.atguigu.mybatis.mapper.EmpMapper.getEmpByDeptId"/>
+ </resultMap>
+ <select id="getDeptById" parameterType="Integer" resultMap="DeptResultMap">
+	select * from tbl_dept where id=#{id}
+ </select>
+</mapper>
+================================================================
+新建EmpMapper接口和方法
+
+public interface EmpMapper
+{
+ public List<Emp> getEmpByDeptId(Integer deptId); 
+}
+================================================================
+新建EmpMapper.xml
+
+<mapper namespace="com.atguigu.mybatis.mapper.EmpMapper">
+ <resultMap  id="EmpResultMap" type="Emp">
+	   <id property="id" column="id"/>
+	   <result property="name" column="name"/>
+ </resultMap>
+ <select id="getEmpByDeptId" parameterType="Integer" resultMap="EmpResultMap">
+	   select * from tbl_emp where deptId=#{deptId}
+ </select>
+</mapper>
+================================================================
+测试junit，查出一个部门下所有员工
+
+public class TestOne2Many
+{
+  //日志
+ private static Logger logger = Logger.getLogger(TestOne2Many.class);
+ 
+ private SqlSessionFactory sqlSessionFactory = null;
+ 
+ @Before
+ public void init() throws IOException
+ {
+   String resource = "mybatis-config.xml";
+   InputStream inputStream = Resources.getResourceAsStream(resource);
+   sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+ }
+ 
+ 
+ @Test
+ public void test_GetDeptById()
+ {
+   SqlSession sqlSession = null;
+   
+   try
+   {
+    sqlSession = sqlSessionFactory.openSession();
+    
+    DeptMapper deptMapper = sqlSession.getMapper(DeptMapper.class);
+    Dept dept = deptMapper.getDeptById(1);
+    
+    System.out.println("############"+dept.getDeptName());
+    
+    List<Emp> list = dept.getEmps();
+    for (Emp emp : list)
+    {
+      System.out.println(emp.toString());
+    }
+    
+   } catch (Exception e){
+    e.printStackTrace();
+   }finally{
+    if(null != sqlSession) sqlSession.close();
+   }
+ }
+}
+================================================================
+再来双向1:N，每一个员工都属于一个部门
+
+Emp类里新增定义 private Dept dept;
+================================================================
+接口EmpMapper新增方法getEmpById
+
+public interface EmpMapper
+{
+ //为部门查询服务，从一的一端查询，协助按照deptId查询并获得所有员工
+ public List<Emp> getEmpByDeptId(Integer deptId); 
+ 
+ //为员工查询服务，查出该员工信息+属于哪个部门
+ public Emp getEmpById(Integer id);
+}
+================================================================
+修改EmpMapper.xml
+
+<mapper namespace="com.atguigu.mybatis.mapper.EmpMapper">
+ 
+ <resultMap  id="EmpResultMap" type="Emp">
+	   <id property="id" column="id"/>
+	   <result property="name" column="name"/>
+   <!--双向映射，员工里面有部门 -->
+   <association property="dept" column="deptId" select="com.atguigu.mybatis.mapper.DeptMapper.getDeptById"/>   
+ </resultMap>
+ 
+ <!-- 为部门查询服务，从一的一端查询，协助按照部门id查询并获得所有员工 -->
+ <select id="getEmpByDeptId" parameterType="Integer" resultMap="EmpResultMap">
+	 select * from tbl_emp where deptId=#{deptId}
+ </select>
+ 
+ <!-- 为员工查询服务，查出该员工自身信息+属于哪个部门 -->
+ <select id="getEmpById" parameterType="Integer" resultMap="EmpResultMap">
+	 select * from tbl_emp where id=#{id}
+ </select> 
+ 
+</mapper>
+================================================================
+测试junit，查出某员工属于哪个部门
+
+@Test
+ public void test_GetEmpById()
+ {
+   SqlSession sqlSession = null;
+   
+   try
+   {
+    sqlSession = sqlSessionFactory.openSession();
+    
+    EmpMapper empMapper = sqlSession.getMapper(EmpMapper.class);
+    Emp emp = empMapper.getEmpById(1);
+    
+    System.out.println(emp.toString());
+    
+   } catch (Exception e){
+    e.printStackTrace();
+   }finally{
+    if(null != sqlSession) sqlSession.close();
+   }
+ }
+================================================================
+注解版
+
+先是单向1:N，一个部门下有多个员工
+================================================================
+新建接口DeptMapperAnnotation+添加注解
+
+public interface DeptMapperAnnotation
+{
+	 @Select("select * from tbl_dept where id=#{id}")
+	 @Results({
+	   @Result(id=true,property="id",column="id"),
+	   @Result(property="deptName",column="deptName"),
+	   @Result(property="locAdd",column="locAdd"),
+	   @Result(property="emps",column="id",many=@Many(select="com.atguigu.mybatis.mapper.EmpMapperAnnotation.getEmpByDeptId"))
+	 })
+	 public Dept getDeptById(Integer id);
+}
+================================================================
+新建接口EmpMapperAnnotation+添加注解
+
+public interface EmpMapperAnnotation
+{
+	 @Select("select * from tbl_emp where deptId=#{deptId}") 
+	 @Results({
+	   @Result(id=true,property="id",column="id"),
+	   @Result(property="name",column="name")
+	 })
+	 public List<Emp> getEmpByDeptId(Integer deptId); 
+}
+================================================================
+通配注册或新增注册进mybatis配置文件
+================================================================
+测试1：N
+================================================================
+================================================================
+再来双向1:N，每一个员工都属于一个部门
+
+修改EmpMapperAnnotation接口
+
+ @Select("select * from tbl_emp where id=#{id}")
+ @Results({
+   @Result(id=true,property="id",column="id"),
+   @Result(property="name",column="name"),
+   @Result(property="dept",column="deptId",one=@One(select="com.atguigu.mybatis.mapper.DeptMapperAnnotation.getDeptById"))
+ })
+ public Emp getEmpById(Integer id);
+================================================================
+测试
+
+@Test
+ public void test_GetEmpByIdAnnotation()
+ {
+	   SqlSession sqlSession = null;
+   
+   try
+   {
+	    sqlSession = sqlSessionFactory.openSession();
+	    
+	    EmpMapperAnnotation empMapperAnnotation = sqlSession.getMapper(EmpMapperAnnotation.class);
+	    Emp emp = empMapperAnnotation.getEmpById(1);
+	    
+	    System.out.println(emp.toString());
+    
+   } catch (Exception e){
+	    e.printStackTrace();
+   }finally{
+	    if(null != sqlSession) sqlSession.close();
+   }
+ }
+================================================================
+================================================================
+查询缓存
+
+介绍
+
+1 默认情况下，mybatis是启用一级缓存的，它是SqlSession级别的，
+      也即同一个SqlSession接口对象调用了相同的select语句，
+         就会从缓存里面拿到，而不是再去查询一次数据库，给学生演示下看看。
+
+默认情况下，select使用缓存，增删改不使用。
+  当 Session flush 或 close 之后，该Session中的所有 Cache 就将清空。
+
+2 二级缓存
+
+3 外部缓存
+
+4 作用域
+正如大多数持久层框架一样，MyBatis 同样提供了一级缓存和二级缓存的支持；
+
+一级缓存基于 PerpetualCache 的 HashMap 本地缓存，
+  其存储作用域为 Session，当 Session flush 或 close 之后，该Session中的所有 Cache 就将清空。
+
+二级缓存与一级缓存其机制相同，默认也是采用 PerpetualCache，HashMap存储，
+   不同在于其存储作用域为 Mapper(Namespace)，并且可自定义存储源，如 Ehcache、Hazelcast等。
+================================================================
+一级缓存
+
+案例步骤
+
+建表tb_user
+
+CREATE TABLE hj_ycp.tb_user(
+  id INT IDENTITY(1, 1) NOT NULL,
+  NAME VARCHAR(20), 
+  age INT
+);
+INSERT INTO hj_ycp.tb_user(NAME, age) VALUES('苏武', 22);
+INSERT INTO hj_ycp.tb_user(NAME, age) VALUES('李青', 31);
+commit;
+================================================================
+建entity
+
+public class User
+{
+ private Integer id;
+ private String  name;
+ private int     age;
+}
+================================================================
+UserMapper接口和方法
+
+public interface UserMapper
+{
+ public User getUserById(Integer id);
+ 
+ public void updateUser(User user);
+}
+================================================================
+UserMapper.xml实现
+
+<mapper namespace="com.atguigu.mybatis.mapper.UserMapper">
+ 
+ <select id="getUserById" parameterType="Integer" resultType="User">
+   select * from tbl_user where id=#{id}
+ </select>
+ 
+ <update id="updateUser" parameterType="User">
+   update tbl_user set name=#{name},age=#{age} where id=#{id}
+ </update>
+ 
+</mapper>
+================================================================
+通配注册或新增注册到配置文件
+================================================================
+演示缓存失效情况
+
+@Test
+ public void test_OneLevelCache()
+ {
+   SqlSession sqlSession = null;
+   try
+   {
+    sqlSession = sqlSessionFactory.openSession();
+    
+    UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+    
+    User user = userMapper.getUserById(1);
+    System.out.println(user.toString());
+
+    /**
+    * 一级缓存默认会被使用,执行下面的结果可以看到，User user2，但是sql还是一条*/
+    User user2 = userMapper.getUserById(1);
+    System.out.println(user2.toString());
+    
+    /**
+    * 1必须是同样的查询条件,一级缓存才有效
+    User user2 = userMapper.getUserById(2);
+    System.out.println(user2.toString()); */
+    
+    /**
+    * 2必须是同一个sqlSession，如果关闭过一次，那就另外算了。
+    sqlSession.close();
+    sqlSession = sqlSessionFactory.openSession();
+    userMapper = sqlSession.getMapper(UserMapper.class);
+    User user2 = userMapper.getUserById(1);
+    System.out.println(user2.toString());*/    
+     
+    /**
+    * 3没有执行过sqlSession.clearCache(); 
+    sqlSession.clearCache();
+    User user2 = userMapper.getUserById(1);
+    System.out.println(user2.toString());*/
+    
+    /**
+     * 
+     * 4没有执行过增删改 
+    userMapper.updateUser(new User(1,"lisi",363));
+    sqlSession.commit();
+    user = userMapper.getUserById(1);
+    System.out.println(user.toString());*/   
+         
+    
+   } catch (Exception e){
+    e.printStackTrace();
+   }finally{
+    if(null != sqlSession) sqlSession.close();
+   }
+ }
+================================================================
+一级缓存： 原理结论
+
+Mybatis 内部缓存是使用了一个HashMap， map数据结构需要key/value
+key  : hashCode+查询的SqlId+编写的sql查询语句
+value：执行上面的查询所获得java对象
+
+一级缓存作用域是SqlSession，每次查询先找缓存，找到使用，
+找不到再从数据库查询。查询到数据将数据写入缓存。
+
+缓存启效前提条件:
+1. 查询条件一样
+2. 必须是同一个sqlSession，如果关闭过一次，那就另外算了。
+3. 没有执行过sqlSession.clearCache();
+4. 没有执行过增删改，sqlSession执行insert、update、delete等操作， commit提交后会清空缓存区域。
+================================================================
+================================================================
+二级缓存
+
+案例步骤
+================================================================
+mybatis-config.xml配置中开启二级缓存
+
+<settings>
+   <setting name="cacheEnabled" value="true"/>
+</settings>
+================================================================
+提醒，用二级缓存时entity类必须实现序列化接口
+================================================================
+添加一个<cache>在userMapper.xml
+
+<cache  eviction="FIFO"  flushInterval="60000"  size="512"  readOnly="true"/>
+================================================================
+测试+效果
+
+public class TestTwoLvLCache
+{
+  private static Logger logger = Logger.getLogger(TestTwoLvLCache.class);
+  private SqlSessionFactory sqlSessionFactory = null;
+  
+  @Before
+  public void init() throws IOException
+  {
+     String resource = "mybatis-config.xml";
+     InputStream inputStream = Resources.getResourceAsStream(resource);
+     sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  }
+  
+  @Test
+  public void test_GetUserById()
+  {
+     SqlSession sqlSession1 = sqlSessionFactory.openSession();
+     UserMapper userMapper1 = sqlSession1.getMapper(UserMapper.class);
+     User user1 = userMapper1.getUserById(1);
+     System.out.println(user1.toString());
+     sqlSession1.close();
+     
+     SqlSession sqlSession2 = sqlSessionFactory.openSession();
+     UserMapper userMapper2 = sqlSession2.getMapper(UserMapper.class);
+     User user2 = userMapper2.getUserById(1);
+     System.out.println(user2.toString());
+     sqlSession2.close();
+     
+  }
+
+}
+================================================================
+二级缓存： 原理结论 
+
+Cache参数解释
+
+<!-- 
+	eviction：缓存的回收策略
+	         FIFO的策略（先进先出:按对象进入缓存的顺序来移除它们）
+	flushInterval:刷新频率，时间间隔，单位是毫秒，每隔1分钟刷新一次，
+	size：最多存512个对象，引用数目，内存大就多配置点，记住缓存的对象数目和运行环境的可用内存资源数目。默认值是1024
+	readOnly:true,只读，返回的对象被认为是只读的
+-->
+<cache  eviction="FIFO"  flushInterval="60000"  size="512"  readOnly="true"/>
+
+四大策略（缓存回收）
+1.LRU – 最近最少使用的:移除最长时间不被使用的对象，它是默认
+2.FIFO – 先进先出:按对象进入缓存的顺序来移除它们。
+3.SOFT – 软引用:移除基于垃圾回收器状态和软引用规则的对象。
+4.WEAK – 弱引用:更积极地移除基于垃圾收集器状态和弱引用规则的对象。
+================================================================
+禁用二级缓存
+
+<select id="getUserById" parameterType="Integer" resultType="User" useCache="true">
+  select * from tbl_user where id=#{id}
+ </select>
+
+设置useCache=false，可以禁用当前select语句的二级缓存，即每次查询都会发sql去查询，
+默认情况是true，即该sql使用二级缓存。
+================================================================
+刷新(清空)二级缓存
+
+ <update id="updateUser" parameterType="User" flushCache="true">
+     UPDATE tbl_user SET NAME=#{name},age=#{age} WHERE id=#{id}
+ </update>
+
+说明：
+insert、update、delete操作数据后需要刷新缓存，
+  如果不执行刷新缓存会出现脏读，所以默认为true，
+     默认情况下为true即刷新缓存，一般不用修改，知道即可。
+================================================================
+一级缓存和二级缓存的使用顺序
+
+如果你的 MyBatis 使用了二级缓存，
+   并且你的 Mapper 和 select 语句也配置使用了二级缓存，
+       那么在执行 select 查询的时候， MyBatis 会先从二级缓存中取输入，其次才是一级缓存，
+       
+ 即 MyBatis 查询数据的顺序是：
+     二级缓存 ----->  一级缓存  -----> 数据库 
+================================================================
+要想使某条 Select查询，支持二级缓存的前提条件
+
+1. MyBatis支持二级缓存的总开关：全局配置变量参数 cacheEnabled=true
+
+ <settings>
+   <setting name="cacheEnabled" value="true"/>
+ </settings>
+
+2. 该select语句所在的Mapper，配置了<cache> 节点且有效
+
+3. 查询的实体类entity类必须实现序列化接口： Serializable
+
+4. 该select语句的参数 useCache=true 
+================================================================
+mybatis整合Ehcache
+
+是什么
+
+EhCache 是一个纯Java的进程内缓存框架，具有快速、精干等特点，
+是Hibernate中默认的CacheProvider。
+================================================================
+mybatis已经有1、2级缓存了为什么还要ehcache
+================================================================
+能干嘛
+================================================================
+怎么玩
+
+1. 添jar包： 4个
+
+	ehcache核心包
+	ehcache-core-2.6.8.jar
+	
+	mybatis 整合 ehcache 包
+	mybatis-ehcache-1.0.3.jar
+	
+	两个日志包
+	slf4j-api-1.7.5.jar
+	slf4j-log4j12-1.7.5.jar
+================================================================
+2. ehcache.xml配置，用自定义的
+
+ehcache.xml --> 这个文件是出厂默认
+
+-- 下面是实际生产的配置（首选）
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:noNamespaceSchemaLocation="../config/ehcache.xsd">
+ 
+ <diskStore path="D:\44\ehcache" />
+ 
+ <defaultCache 
+   maxElementsInMemory="1000" 
+   maxElementsOnDisk="10000000"
+   eternal="false" 
+   overflowToDisk="false" 
+   timeToIdleSeconds="120"
+   timeToLiveSeconds="120" 
+   diskExpiryThreadIntervalSeconds="120"
+   memoryStoreEvictionPolicy="LRU">
+ </defaultCache>
+</ehcache>
+
+<!-- 
+属性说明：
+1. diskStore：指定数据在磁盘中的存储位置。
+2. defaultCache：默认二级缓存，当借助CacheManager.add("demoCache")创建Cache时，EhCache便会采用<defalutCache/>指定的的管理策略
+
+以下属性是必须的：
+1. maxElementsInMemory - 在内存中缓存的element的最大数目 
+2. maxElementsOnDisk - 在磁盘上缓存的element的最大数目，若是0表示无穷大
+3. eternal - 设定缓存的elements是否永远不过期。如果为true，则缓存的数据始终有效，
+                                 如果为false那么还要根据timeToIdleSeconds，timeToLiveSeconds判断
+4. overflowToDisk - 设定当内存缓存溢出的时候是否将过期的element缓存到磁盘上
+
+以下属性是可选的：
+1. timeToIdleSeconds - 当缓存在EhCache中的数据前后两次访问的时间超过timeToIdleSeconds的属性取值时，
+                                                           这些数据便会删除，默认值是0,也就是可闲置时间无穷大
+2. timeToLiveSeconds - 缓存element的有效生命期，默认是0,也就是element存活时间无穷大
+3. diskSpoolBufferSizeMB - 这个参数设置DiskStore(磁盘缓存)的缓存区大小.默认是30MB.每个Cache都应该有自己的一个缓冲区.
+4. diskPersistent - 在VM重启的时候是否启用磁盘保存EhCache中的数据，默认是false。
+5. diskExpiryThreadIntervalSeconds - 磁盘缓存的清理线程运行间隔，默认是120秒。每个120s，相应的线程会进行一次EhCache中数据的清理工作
+6. memoryStoreEvictionPolicy - 当内存缓存达到最大，有新的element加入的时候， 移除缓存中element的策略。
+                                                                                 默认是LRU（最近最少使用），可选的有LFU（最不常使用）和FIFO（先进先出）
+-->
+================================================================
+3. 开启ehcache缓存
+
+修改mapper.xml文件，在cache中指定EhcacheCache
+
+<!-- mybatis和ehcache结合-->
+<cache type="org.mybatis.caches.ehcache.EhcacheCache"></cache>
+================================================================
+4. 测试
+
+public class TestTwoLvLCache
+{
+  private static Logger logger = Logger.getLogger(TestTwoLvLCache.class);
+  private SqlSessionFactory sqlSessionFactory = null;
+  
+  @Before
+  public void init() throws IOException
+  {
+     String resource = "mybatis-config.xml";
+     InputStream inputStream = Resources.getResourceAsStream(resource);
+     sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  }
+  
+  @Test
+  public void test_GetUserById()
+  {
+     SqlSession sqlSession1 = sqlSessionFactory.openSession();
+     UserMapper userMapper1 = sqlSession1.getMapper(UserMapper.class);
+     User user1 = userMapper1.getUserById(1);
+     System.out.println(user1.toString());
+     sqlSession1.close();
+     
+     SqlSession sqlSession2 = sqlSessionFactory.openSession();
+     UserMapper userMapper2 = sqlSession2.getMapper(UserMapper.class);
+     User user2 = userMapper2.getUserById(1);
+     System.out.println(user2.toString());
+     sqlSession2.close();
+     
+     SqlSession sqlSession3 = sqlSessionFactory.openSession();
+     UserMapper userMapper3 = sqlSession3.getMapper(UserMapper.class);
+     User user3 = userMapper3.getUserById(1);
+     System.out.println(user3.toString());
+     sqlSession3.close();
+     
+     SqlSession sqlSession4 = sqlSessionFactory.openSession();
+     UserMapper userMapper4 = sqlSession4.getMapper(UserMapper.class);
+     User user4 = userMapper4.getUserById(1);
+     System.out.println(user4.toString());
+     sqlSession4.close();
+     
+     SqlSession sqlSession5 = sqlSessionFactory.openSession();
+     UserMapper userMapper5 = sqlSession5.getMapper(UserMapper.class);
+     User user5 = userMapper5.getUserById(1);
+     System.out.println(user5.toString());
+     sqlSession5.close();     
+  }
+}
+
+说明： Cache Hit Ratio 缓存命中率，相同条件的select语句，不断的缓存查询，缓存命中率会不断的提高
+================================================================
+================================================================
+Spring 整合 Mybatis
+
+spring3.0以下不支持mybatis
+================================================================
+笔记完成！！！
+================================================================
+================================================================

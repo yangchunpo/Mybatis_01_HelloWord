@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!-- configuration:配置 -->
+<configuration>
+    <!-- 引入外部资源文件，将数据库配置设为外部链接 -->
+	<properties resource="jdbc.properties"/>
+	
+	<!-- 
+	  lazyLoadingEnabled： 开启延时加载 
+	  aggressiveLazyLoading： 积极加载
+	-->
+	 <settings>
+	   <!-- 开启懒加载 -->
+	   <setting name="lazyLoadingEnabled"       value="true"/>
+	   <!-- 关闭积极加载 -->
+	   <setting name="aggressiveLazyLoading"    value="false"/> 
+	   <!-- 开启二级缓存 -->
+	   <setting name="cacheEnabled"             value="true"/>
+	 </settings>
+	
+	<typeAliases>
+        <!-- 单独为Perosn进行别名设置 --> 
+		<!-- <typeAlias type="com.atguigu.mybatis.entities.Person" alias="Person"/> -->
+		
+        <!--批处理别名，扫描整个包下的类 -->
+		<package name="com.atguigu.mybatis.entities"/>
+	</typeAliases>
+
+	<!-- environments：环境（复数） -->
+	<!-- default：默认 -->
+	<!-- development：开发环境（只有一个环境） -->
+	<environments default="development">
+		<!-- environment：开发 （连接数据库的一个单元） -->
+		<!-- id:唯一标识 -->
+		<environment id="development">
+			<!-- transactionManager：事务管理器 -->
+			<transactionManager type="JDBC" />
+			<!-- dataSource：数据源 -->
+			<!-- type：类型（连接池） -->
+			<dataSource type="POOLED">				
+				<property name="driver"    value="${jdbc.driverClass}" />
+				<property name="url"        value="${jdbc.url}" />
+				<property name="username"   value="${jdbc.user}" />
+				<property name="password"   value="${jdbc.password}" />
+			</dataSource>
+		</environment>
+	</environments>
+
+	<!-- 注册： 接口实现类 -->
+	<!-- mappers: 自定义的东东 必须注册进 框架，框架才能识别 -->
+	<mappers>
+		<!-- resource：静态资源文件 -->
+		<!-- <mapper resource="com/atguigu/mybatis/mapper/PersonMapper.xml" /> -->
+		<!-- class：具体的类 -->
+		<!-- <mapper class="com.atguigu.mybatis.mapper.PersonMapperAnnotation"/> -->
+		
+		<!-- 注册mapper包下的所有mapper接口,此种方法要求mapper接口名称和mapper映射文件名称遵守mabatis规范，且放在同一个目录中 -->
+		<package name="com.atguigu.mybatis.mapper"/>
+	</mappers>
+
+</configuration>

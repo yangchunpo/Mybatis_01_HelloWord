@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.DeptMapper">
+	   <!-- 
+	   collection :一对多关联查询
+       ofType：集合中元素对象的类型
+       
+	   private List<Emp> emps; 
+	   column="id"集合对象主键，
+	   select按照外键键查询，通过deptid查出emp给dept
+	   --> 
+	<resultMap type="com.atguigu.mybatis.entities.Dept" id="DeptResultMap">
+		<id property="id" column="id" />
+		<result property="deptName" column="deptName" />
+		<result property="locAdd" column="locAdd" />
+		<collection property="emps" ofType="com.atguigu.mybatis.entities.Emp"
+			column="id" select="com.atguigu.mybatis.mapper.EmpMapper.getEmpByDeptId" />
+	</resultMap>
+	<select id="getDeptById" statementType="PREPARED" parameterType="Integer"
+		resultMap="DeptResultMap">
+		select * from hj_ycp.tb_dept where id=#{id};
+	</select>
+
+</mapper>

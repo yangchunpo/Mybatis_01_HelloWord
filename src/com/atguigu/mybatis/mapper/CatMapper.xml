@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.CatMapper">
+
+	<!-- 多条件查询 -->
+	<select id="getCatByConditions" 
+	        statementType="PREPARED" 
+	        parameterType="com.atguigu.mybatis.entities.Cat"
+	        resultType="com.atguigu.mybatis.entities.Cat">
+	 select * from hj_ycp.tb_cat where id=#{id} and age=#{age};
+	 </select>
+	 
+	 <select id="getCatByObject" 
+	         statementType="PREPARED"
+	         parameterType="com.atguigu.mybatis.entities.Cat"
+	         resultType="com.atguigu.mybatis.entities.Cat">
+	 select * from hj_ycp.tb_cat where catName like #{catName};
+	 </select>
+	 
+	 <select id="getCatByCatName"
+	 	     statementType="PREPARED"
+	 	     parameterType="String"
+	 	     resultType="com.atguigu.mybatis.entities.Cat">
+	 select * from hj_ycp.tb_cat where catName like '%${value}%';
+	 </select>
+	 
+	 <select id="getCatByMap"
+	 		 statementType="PREPARED"
+	 		 parameterType="hashmap"
+	 		 resultType="com.atguigu.mybatis.entities.Cat">
+	 select * from hj_ycp.tb_cat where id=#{id} and age=#{age};
+	 </select>
+	 
+	 <select id="getCatByMap2"
+	         statementType="PREPARED"
+	         parameterType="hashmap"
+	         resultType="hashmap">
+	 select * from hj_ycp.tb_cat where age>#{age};
+	 </select>
+	 
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.DogMapper">
+
+	<select id="getDogByDogName"
+	        statementType="PREPARED"
+	        parameterType="String"
+	        resultType="com.atguigu.mybatis.entities.Dog">
+      select id, dog_Name, dog_Weight from hj_ycp.tb_dog where dog_Name like #{dog_Name};
+
+      <!-- 
+      Dog [id=1, dogName=null, dogWeight=0]
+      Dog [id=2, dogName=null, dogWeight=0] 
+               有的结果字段里是null，
+                   原因为数据库里的字段名  与  java类里的 成员变量名 不一致
+      -->
+	</select>
+	
+	<select id="getDogByDogNameAlias"
+	        statementType="PREPARED"
+	        parameterType="String"
+	        resultType="com.atguigu.mybatis.entities.Dog">
+      select 
+         id id, 
+         dog_Name dogName, 
+         dog_Weight dogWeight 
+      from 
+         hj_ycp.tb_dog 
+      where 
+         dog_Name like #{dog_Name};
+	</select>
+	
+    <!-- 靠resultMap来解决，类名和字段名不一致的情况 -->
+    <!--  id: 查询结果集的唯一标识
+          column： 数据库字段
+          property： POJO类的属性字段
+          result： 映射结果，表示将数据库的值对应映射给POJO的类属性上
+    -->
+	<resultMap type="com.atguigu.mybatis.entities.Dog" id="dogResultMap">
+		<id property="id" column="id"/>
+		<result property="dogName" column="dog_Name"/>
+		<result property="dogWeight" column="dog_Weight"/>
+	</resultMap>
+	<select id="getDogByDogNameResultMap"
+	        statementType="PREPARED"
+	        parameterType="String"
+	        resultMap="dogResultMap">
+      select id, dog_Name, dog_Weight from hj_ycp.tb_dog where dog_Name like #{dog_Name};
+	</select>
+
+</mapper>

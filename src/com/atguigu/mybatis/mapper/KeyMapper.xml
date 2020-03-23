@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.KeyMapper">
+
+	<select id="getKeyById" 
+	        parameterType="Integer" 
+	        resultType="com.atguigu.mybatis.entities.Key"
+	        statementType="PREPARED">
+	   select id, keyName from hj_ycp.tb_key where id=#{id};
+	</select>
+
+</mapper>

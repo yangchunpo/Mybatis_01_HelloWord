@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.UserMapper">
+
+	<!-- mybatis自带的二级缓存
+	eviction：缓存的回收策略
+	         FIFO的策略（先进先出:按对象进入缓存的顺序来移除它们）
+	flushInterval:刷新频率，时间间隔，单位是毫秒，每隔1分钟刷新一次，
+	size：最多存512个对象，引用数目，内存大就多配置点，记住缓存的对象数目和运行环境的可用内存资源数目。默认值是1024
+	readOnly:true,只读，返回的对象被认为是只读的
+	-->
+	<!-- <cache  eviction="FIFO"  flushInterval="60000"  size="512"  readOnly="true"/> -->
+	
+	<!-- 第三方缓存产品： EhcacheCache -->
+	<cache type="org.mybatis.caches.ehcache.EhcacheCache"></cache>
+	
+
+	<select id="getUserById" parameterType="Integer"
+		resultType="com.atguigu.mybatis.entities.User" statementType="PREPARED">
+		select *
+		from hj_ycp.tb_user where id=#{id};
+	</select>
+
+	<update id="updateUser" parameterType="com.atguigu.mybatis.entities.User">
+		update hj_ycp.tb_user set name=#{name},age=#{age} where id=#{id};
+	</update>
+</mapper>

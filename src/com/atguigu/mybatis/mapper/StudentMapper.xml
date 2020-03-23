@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.StudentMapper">
+
+	<!-- 普通例子，与动态sql无关 -->
+	<select id="getByAge"
+	        statementType="PREPARED"
+	        parameterType="Integer"
+	        resultType="com.atguigu.mybatis.entities.Student">
+       select id,name,score,birth,age from hj_ycp.tb_student where age>#{age};
+	</select>
+	
+	<select id="getByAge_if"
+	        statementType="PREPARED"
+	        parameterType="Integer"
+	        resultType="com.atguigu.mybatis.entities.Student">
+       select id,name,score,birth,age from hj_ycp.tb_student where 1=1
+       <!-- 
+        age会到具体的入参 类型Integer里去找 getAge()方法
+                       需要在接口方法入参中加入： @Param("age")
+                       
+                       具体接口方法如下：
+           public List<Student> getByAge_if(@Param("age") int age);
+       -->
+       <if test="age > 0"> 
+       		and age=#{age}
+       </if>;
+       
+       <!-- _parameter： 默认值，指的是传入的age值
+       <if test="_parameter > 0">
+       		and age=#{age};
+       </if>
+        -->
+	</select>
+	
+	<!-- 动态sql条件： where -->
+	<select id="getStudent_Where"
+	        statementType="PREPARED"
+	        parameterType="com.atguigu.mybatis.entities.Student"
+	        resultType="com.atguigu.mybatis.entities.Student">
+	   select id,name,score,birth,age from hj_ycp.tb_student
+	   <where>
+	    	<if test="name != null and name != ''">
+	    		and name=#{name}
+	    	</if>
+	    	<if test="age > 0">
+	    		and age=#{age}
+	    	</if>
+	   </where>     
+	</select>
+	
+	<!--  
+	     动态sql语句条件：  choose/when/otherwise，
+	                                             类似于java中的switch/case，
+	                                                  只取一个条件，只要前面的一个条件满足，后面的条件不再考虑
+	 -->
+	<select id="getStudent_Choose_when_otherwise"
+	        statementType="PREPARED"
+	        parameterType="Map"
+	        resultType="com.atguigu.mybatis.entities.Student">
+	   select id,name,score,birth,age from hj_ycp.tb_student
+	   <choose>
+	   		<when test="name != null and name != ''">
+	   			where name=#{name}
+	   		</when>
+	   		<when test="age > 0">
+	   			where age=#{age}
+	   		</when>
+	   		<otherwise>
+	   			where 1=1
+	   		</otherwise>
+	   </choose>    
+	</select>
+	
+	<!-- 动态sql条件：  foreach
+	            相当于sql语句里的in(xx,xx,xx)
+	-->
+	<select id="getStudent_Foreach"
+	        statementType="PREPARED"
+	        parameterType="Map"
+	        resultType="com.atguigu.mybatis.entities.Student">
+	   select id,name,score,birth,age from hj_ycp.tb_student
+	   <if test="ages != null and ages != ''">
+	   		<where>
+	   			age in
+	   			<foreach collection="ages" item="ages" open="(" separator="," close=")">
+	   				#{ages}
+	   			</foreach>
+	   		</where>
+	   </if>
+	</select>
+	
+	<!-- 动态sql条件： trim ，可以代替 where条件 -->
+	<select id="getStudent_Trim"
+	        statementType="PREPARED"
+	        parameterType="Map"
+	        resultType="com.atguigu.mybatis.entities.Student">
+	   select id,name,score,birth,age from hj_ycp.tb_student
+	<trim prefix="where" prefixOverrides="and|or">
+		<if test="name != null and name != ''">
+			name=#{name}
+		</if>
+	</trim>
+	</select>
+	
+	<!-- 
+	动态sql条件： trim ，可以代替 where条件 
+	模拟insert语句，
+	注意 起始标签一定是 <insert 不能再试 <select
+	-->
+  	<insert id="insertStudent_Trim"
+	        statementType="PREPARED"
+	        parameterType="Map">
+	   insert into hj_ycp.tb_student
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="name != null and name != ''">
+				name,
+			</if>
+			<if test="score != null and score != ''">
+				score,
+			</if>
+			<if test="birth != null and birth != ''">
+				birth,
+			</if>
+			<if test="age != null and age != ''">
+				age,
+			</if>
+		</trim>
+		<trim prefix=" values (" suffix=")" suffixOverrides=",">
+			<if test="name != null and name != ''">
+				#{name},
+			</if>
+			<if test="score != null and score != ''">
+				#{score},
+			</if>
+			<if test="birth != null and birth != ''">
+				#{birth},
+			</if>
+			<if test="age != null and age != ''">
+				#{age},
+			</if>
+		</trim>
+	</insert>
+	
+	<update id="updateStudent_Set" parameterType="Map" statementType="PREPARED">
+		<!-- update 
+		    hj_ycp.tb_student 
+		set 
+		    name=#{name},score=#{score},birth=#{birth},age=#{age}
+		where 
+		    id=#{id}; -->
+		update hj_ycp.tb_student
+		<set>
+		    <if test="name != null and name != ''">name=#{name},</if>
+		    <if test="score != null and score != ''">score=#{score},</if>
+		    <if test="birth != null and birth != ''">birth=#{birth},</if>
+		    <if test="age != null and age != ''">age=#{age},</if>
+		</set>
+		where
+		    id=#{id}
+	</update>
+	
+	
+</mapper>

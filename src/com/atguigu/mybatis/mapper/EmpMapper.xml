@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.atguigu.mybatis.mapper.EmpMapper">
+
+	<resultMap type="com.atguigu.mybatis.entities.Emp" id="EmpResultMap">
+		<id property="id" column="id" />
+		<result property="name" column="name" />
+		<association property="dept" column="deptId"
+			select="com.atguigu.mybatis.mapper.DeptMapper.getDeptById" />
+	</resultMap>
+	<select id="getEmpByDeptId" statementType="PREPARED"
+		parameterType="Integer" resultMap="EmpResultMap">
+		select * from hj_ycp.tb_emp where deptId=#{deptId};
+	</select>
+
+	<select id="getEmpById" statementType="PREPARED" parameterType="Integer"
+		resultMap="EmpResultMap">
+		select * from hj_ycp.tb_emp where id=#{id};
+	</select>
+
+</mapper>

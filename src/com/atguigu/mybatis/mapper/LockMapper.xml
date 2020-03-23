@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.atguigu.mybatis.mapper.LockMapper">
+
+	  <!-- 
+	  association：用于1:1关联查询
+	  javaType：对象属性的完成类型，建议包名+类名
+	  property：entity对象的属性名称
+	  column：对应数据库表的字段 
+	  -->
+
+	<resultMap type="com.atguigu.mybatis.entities.Lock" id="LockResultMap">
+		<!-- id指定数据库表的主键，
+		               但数据库表的字段id不一定是主键，也不需要满足主键的非空唯一的规则 
+		        mabatis不会去检查数据库表的具体情况
+		  -->
+		<id property="id" column="id"/>
+		<result property="lockName" column="lockName"/>
+		
+		<!-- property="key" 这个设置，
+		                是Lock类中沟通Key类的成员变量，
+		                     和数据库表的字段没有任何关系，
+		                         即 数据库表tb_lock可以没有外键
+		                            只要sql中根据条件去关联另一张表，即可 返回另一张表的对应字段-->
+		<association property="key" javaType="com.atguigu.mybatis.entities.Key">
+			<id property="id" column="id"/>
+			<result property="keyName" column="keyName"/>
+		</association>
+	</resultMap>
+	<select id="getLockById" 
+	        parameterType="Integer"
+	        statementType="PREPARED"
+	        resultMap="LockResultMap">
+	    select * from hj_ycp.tb_lock aa 
+	    inner join 
+	        hj_ycp.tb_key bb  
+	    on 
+	       aa.id=bb.id  <!-- 关联条件： 主键 和 主键 -->
+	    where 
+	       aa.id=#{id};
+	       
+	    <!-- select * from hj_ycp.tb_lock aa 
+	    inner join 
+	        hj_ycp.tb_key bb 
+	    on 
+	       aa.key_id=bb.id  关联条件： 外键和主键
+	    where 
+	       aa.id=#{id}; -->      
+	</select>
+	
+	<!-- ======================== 懒加载  =============================== -->
+	
+	<resultMap type="com.atguigu.mybatis.entities.Lock" id="LockResultMap2">
+		<id property="id" column="id"/>
+		<result property="lockName" column="lockName"/>
+		<association property="key" column="key_id" select="com.atguigu.mybatis.mapper.KeyMapper.getKeyById"/>
+	</resultMap>
+	<select id="getLockById2" 
+	        parameterType="Integer"
+	        statementType="PREPARED"
+	        resultMap="LockResultMap2">
+	    select * from hj_ycp.tb_lock where id=#{id};
+	</select>
+	
+</mapper>
